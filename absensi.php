@@ -633,7 +633,7 @@ $jam_pulang = $jam_pulang . " WIB"; // menambahkan "WIB" pada akhir string
                 yourLatitude.innerText = latitude;
                 yourLongitude.innerText = longitude;
 
-                // Deteksi jika akurasi di atas 50 meter (indikasi tidak akurat)
+                // Deteksi jika akurasi di atas 500 meter (indikasi tidak akurat)
                 if (accuracy > 500) {
                     Swal.fire({
                         title: "Lokasi Tidak Akurat!",
@@ -780,6 +780,146 @@ $jam_pulang = $jam_pulang . " WIB"; // menambahkan "WIB" pada akhir string
 
             requestLocationPermission();
 
+            // Variabel untuk menyimpan status blokir sementara
+            let isBlocked = false;
+            let blockTimeout = null;
+
+            // Fungsi untuk mencabut blokir setelah waktu tertentu dan menampilkan pesan
+            function unblockAccessAfterTimeout(duration) {
+                clearTimeout(blockTimeout); // Hapus timeout sebelumnya (jika ada)
+                blockTimeout = setTimeout(() => {
+                    isBlocked = false;
+                    localStorage.removeItem('block-timestamp'); // Hapus status blokir
+                    window.removeEventListener('beforeunload', preventNavigation); // Izinkan navigasi
+                    Swal.fire({
+                        title: "Blokir Dicabut",
+                        text: "Blokir telah dicabut. Anda dapat mencoba lagi.",
+                        icon: "info",
+                        confirmButtonText: "OK"
+                    }).then(() => {
+                        location.reload(); // Refresh halaman setelah blokir selesai
+                    });
+                }, duration); // Durasi blokir dalam milidetik
+            }
+
+            // Fungsi untuk mencegah navigasi selama masa blokir
+            function preventNavigation(event) {
+                event.preventDefault();
+                event.returnValue = ''; // Diperlukan untuk beberapa browser
+            }
+
+            // Fungsi untuk menampilkan alert dengan sisa waktu blokir secara real-time (hanya update teks)
+            function showBlockedAlert() {
+                const blockTimestamp = parseInt(localStorage.getItem('block-timestamp'), 10);
+                const blockDuration = 5 * 60 * 1000; // 5 menit dalam milidetik
+
+                Swal.fire({
+                    title: "Akses Diblokir!",
+                    html: `Sisa waktu pemblokiran: <span id="remaining-time"></span>`,
+                    icon: "error",
+                    allowOutsideClick: false,
+                    allowEscapeKey: false,
+                    showConfirmButton: false,
+                    didOpen: () => {
+                        Swal.showLoading(); // Tampilkan loading indicator
+
+                        const interval = setInterval(() => {
+                            const currentTime = new Date().getTime();
+                            const remainingTime = Math.max(0, blockTimestamp + blockDuration - currentTime);
+
+                            const minutes = Math.floor((remainingTime / 1000) / 60);
+                            const seconds = Math.floor((remainingTime / 1000) % 60);
+
+                            // Update hanya teks waktu dalam elemen <span id="remaining-time">
+                            document.getElementById('remaining-time').innerText = 
+                                `${minutes} menit ${seconds} detik`;
+
+                            // Hentikan interval jika waktu habis
+                            if (remainingTime <= 0) {
+                                clearInterval(interval);
+                                localStorage.removeItem('block-timestamp');
+                                location.reload(); // Refresh halaman setelah blokir selesai
+                            }
+                        }, 1000); // Update setiap detik
+                    }
+                });
+            }
+
+            // Fungsi untuk memulai blokir dan menyimpan waktu blokir
+            function blockAccess(duration = 5 * 60 * 1000) {
+                const blockTimestamp = new Date().getTime();
+                localStorage.setItem('block-timestamp', blockTimestamp); // Simpan waktu blokir
+
+                isBlocked = true;
+                window.addEventListener('beforeunload', preventNavigation); // Cegah navigasi
+                showBlockedAlert(); // Tampilkan alert
+                unblockAccessAfterTimeout(duration); // Set timeout untuk pencabutan blokir
+            }
+
+            // Fungsi Validasi Lokasi dan Deteksi Perpindahan Aneh
+            function validateLocation(latitude, longitude) {
+                const storedLat = parseFloat(localStorage.getItem('last-lat'));
+                const storedLon = parseFloat(localStorage.getItem('last-lon'));
+
+                if (storedLat && storedLon) {
+                    const distance = calculateDistance(storedLat, storedLon, latitude, longitude);
+                    if (distance > 1000) { // Jika perpindahan lebih dari 1 km
+                        Swal.fire({
+                            title: "Perpindahan Aneh Terdeteksi!",
+                            text: "Anda terdeteksi berpindah lokasi secara tidak masuk akal. Blokir diperpanjang selama 3 menit.",
+                            icon: "error"
+                        }).then(() => {
+                            blockAccess(3 * 60 * 1000); // Blokir selama 3 menit
+                        });
+                    }
+                }
+
+                // Simpan lokasi saat ini
+                localStorage.setItem('last-lat', latitude);
+                localStorage.setItem('last-lon', longitude);
+            }
+
+            // Fungsi untuk mendapatkan lokasi secara berkala
+            function checkLocationPeriodically() {
+                setInterval(() => {
+                    navigator.geolocation.getCurrentPosition((position) => {
+                        const currentLat = position.coords.latitude;
+                        const currentLon = position.coords.longitude;
+
+                        validateLocation(currentLat, currentLon);
+                    }, console.error);
+                }, 5000); // Cek setiap 5 detik
+            }
+
+            // Fungsi Deteksi DevTools Dibuka
+            (function () {
+                const threshold = 160; // Threshold untuk deteksi DevTools
+                const now = new Date().getTime();
+
+                const devtoolsStatus = JSON.parse(localStorage.getItem('devtools-status'));
+                if (devtoolsStatus && (now - devtoolsStatus.timestamp < 5 * 60 * 1000)) {
+                    showBlockedAlert(); // Tampilkan alert jika DevTools terdeteksi
+                }
+
+                function detectDevTools() {
+                    if (window.outerWidth - window.innerWidth > threshold ||
+                        window.outerHeight - window.innerHeight > threshold) {
+                        localStorage.setItem('devtools-status', JSON.stringify({
+                            opened: true,
+                            timestamp: new Date().getTime()
+                        }));
+                        blockAccess(); // Blokir jika DevTools terdeteksi
+                    }
+                }
+
+                window.addEventListener('resize', detectDevTools);
+                detectDevTools(); // Jalankan saat halaman dimuat
+            })();
+
+            // Panggil Fungsi Validasi dan Deteksi saat halaman dimuat
+            window.addEventListener('load', () => {
+                checkLocationPeriodically();
+            });
         });
 
         // Mengambil elemen video dan tombol ambil foto

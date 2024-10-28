@@ -3,7 +3,7 @@
 -- https://www.phpmyadmin.net/
 --
 -- Host: 127.0.0.1
--- Generation Time: Sep 11, 2024 at 04:44 PM
+-- Generation Time: Oct 27, 2024 at 07:47 AM
 -- Server version: 10.4.32-MariaDB
 -- PHP Version: 8.2.12
 
@@ -125,7 +125,8 @@ INSERT INTO `penempatan` (`penempatan_id`, `penempatan_nama`, `alamat`, `latitud
 (14, 'Tugu', 'Jl. Walisongo No.KM 10, Tugurejo, Kec. Tugu, Kota Semarang, Jawa Tengah 50182', '-6.9857778', '110.3450556', 'https://maps.app.goo.gl/3tQ2UW2yKHbbVuFX6'),
 (15, 'Tembalang', 'Jalan Imam Suparto ‎Semarang WCRW+5V5, Bulusan, Kec. Tembalang, Kota Semarang, Jawa Tengah 50277', '-7.0596111', '110.4470833', 'https://maps.app.goo.gl/tb3tsETrEYJrE1mY9'),
 (16, 'Semarang Tengah', 'Jalan Taman Seteran Barat No.1, Miroto, Semarang Tengah, Kota Semarang, Jawa Tengah 50134, Indonesia', '-7.0527222', '110.4286389', 'https://maps.app.goo.gl/GdUoR6TmvPrCC1rQ9'),
-(18, 'tes', 'tes', '-6.990603035421752', '110.44500235944727', 'https://maps.app.goo.gl/NR6gC3UhzLa7RV9X6');
+(18, 'tes rama', 'tes rama', '-6.990603035421752', '110.44500235944727', 'https://maps.app.goo.gl/NR6gC3UhzLa7RV9X6'),
+(19, 'tes rizal', 'tes rizal', '-7.030225', '110.497650', 'https://maps.app.goo.gl/4S6H8WMYjbu7QN75A');
 
 -- --------------------------------------------------------
 
@@ -163,7 +164,8 @@ INSERT INTO `pengaturan` (`id_pengaturan`, `penempatan_id`, `batas_telat`, `jara
 (24, 15, 30, 2, 1),
 (25, 16, 30, 2, 1),
 (26, 17, 30, 2, 1),
-(27, 18, 30, 500, 1);
+(27, 18, 30, 500, 1),
+(28, 19, 30, 500, 1);
 
 -- --------------------------------------------------------
 
@@ -185,7 +187,7 @@ CREATE TABLE `pengguna` (
 --
 
 INSERT INTO `pengguna` (`id`, `nik`, `nama`, `password`, `penempatan_id`, `foto_profil`) VALUES
-(58, '3374041406030001', 'Rahmanda Afridiansyah', '25d55ad283aa400af464c76d713c07ad', 1, '3374041406030001_66d359cfad333.png');
+(60, '1234567890123456', 'Rama', '25d55ad283aa400af464c76d713c07ad', 1, NULL);
 
 -- --------------------------------------------------------
 
@@ -268,7 +270,7 @@ ALTER TABLE `status_absen`
 -- AUTO_INCREMENT for table `absen`
 --
 ALTER TABLE `absen`
-  MODIFY `id_absen` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=374;
+  MODIFY `id_absen` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=379;
 
 --
 -- AUTO_INCREMENT for table `admin`
@@ -286,19 +288,19 @@ ALTER TABLE `jadwal`
 -- AUTO_INCREMENT for table `penempatan`
 --
 ALTER TABLE `penempatan`
-  MODIFY `penempatan_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=19;
+  MODIFY `penempatan_id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=20;
 
 --
 -- AUTO_INCREMENT for table `pengaturan`
 --
 ALTER TABLE `pengaturan`
-  MODIFY `id_pengaturan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=28;
+  MODIFY `id_pengaturan` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=29;
 
 --
 -- AUTO_INCREMENT for table `pengguna`
 --
 ALTER TABLE `pengguna`
-  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=59;
+  MODIFY `id` int(11) NOT NULL AUTO_INCREMENT, AUTO_INCREMENT=61;
 
 --
 -- AUTO_INCREMENT for table `status_absen`
